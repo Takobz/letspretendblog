@@ -45,6 +45,19 @@ If class doesn't have a clear objective or task `loose cohension`. We want: loos
 ### Now, Dependency Injection
 Okay we have rembled on about some big words like `cohesion` and `coupling` now let's look at DI.
 
+###### What is a dependency injection?
+DI is when one object/method supplies a dependency to another class. As we seen this dependency can then be used as a service.
+
+###### Why is this benefitial?
+As we will see DI makes it easy for us to test other classes without worrying about services.
+Most of the time when we run unit tests we want to configure our services to give certain values.
+
+It can be hard to make/impossible to make a service give mock data if you can't mock it.
+This typically happens when we have our service instantiated in a method we are testing.
+
+DI allows us to configure our service in one place and reuse the same object all over our class.
+
+
 Suppose we have two classes `HomeScreen` and `PictureService`:
 ``` js
 //HomePage
@@ -62,16 +75,17 @@ public void RenderView()
 //get pictures and sets the appropriately
 private List<Pictures> getHomePageFrom()
 {
-  var pictureService = new PictureService();
+  var IFormatter pngFormatter = PngFormatter("good qaulity");
+  var pictureService = new PictureService(pngFormatter);
   return pictureService.getPictures();
 }
 ```
 
 ``` js
 //PictureService
-public PictureService()
+public PictureService(IPictureFormmater formatter)
 {
-  //constructor
+  //do some formatting
 }
 
 //some code here
