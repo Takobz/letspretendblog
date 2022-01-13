@@ -50,7 +50,9 @@ DI is when one object/method supplies a dependency to another class. As we seen 
 
 ###### Why is this benefitial?
 As we will see DI makes it easy for us to test other classes without worrying about services.
-Most of the time when we run unit tests we want to configure our services to give certain values.
+Most of the time when we run unit tests we want to configure our services to give certain values and it's hard to do that if we defined our service in different places.
+
+DI enforces single responsibilty as you will inject services that make it easy for your class to do what it must do.
 
 It can be hard to make/impossible to make a service give mock data if you can't mock it.
 This typically happens when we have our service instantiated in a method we are testing.
@@ -73,9 +75,9 @@ public void RenderView()
 }
 
 //get pictures and sets the appropriately
-private List<Pictures> getHomePageFrom()
+private List<Pictures> getHomePagePictures()
 {
-  var IFormatter pngFormatter = PngFormatter("good qaulity");
+  IFormatter pngFormatter = PngFormatter("good qaulity");
   var pictureService = new PictureService(pngFormatter);
   return pictureService.getPictures();
 }
@@ -97,3 +99,85 @@ public List<Pictures> getPictures()
   return database.ToList();
 }
 ```
+
+If I want to test getHomePagePictures method in HomePage class I have no way configuring my IFormatter implementation and my PictureService.
+Maybe I can try something like this:
+``` js
+//HomePage
+public HomePage()
+{
+  //constructor
+}
+
+//made services globals
+IFormatter pngFormatter = new pngFormatter("good qaulity");
+var pictureService = new PictureService(pngFormatter);
+
+//called to render views to the screen
+public string RenderView()
+{
+  var pictures = getHomePagePictures();
+
+  if(pictures.quality == "bad quality") return "bad quality";
+
+  return "good quality";
+}
+
+//get pictures and sets the appropriately
+private List<Pictures> getHomePagePictures()
+{
+  return pictureService.getPictures();
+}
+```
+Now I have my services global variables instantiated once.
+This again poses the same problem, If I were to test this class I wouldn't be able to configure my services (`IFormatter` and `PictureService`).
+So making unit testing the HomePage method a nightmare.
+
+This lead us to constructor dependency injection, injecting the dependency via a constructor:
+Consider the following example:
+``` js
+//HomePage
+public HomePage(IFormatter formatter, PictureService pictureService)
+{
+  _pngFormatter = formatter;
+  _pictureService = pictureService;
+}
+
+//called to render views to the screen
+public void RenderView()
+{
+  getHomePagePictures();
+}
+
+//get pictures and sets the appropriately
+private List<Pictures> getHomePagePictures()
+{
+  return pictureService.getPictures();
+}
+```
+
+Now the class that will HomePage object has total control of the "type" of services it passes and HomePage doesn't have to worry about configuring services.
+This is a small change but it has taken the responsibilty of configuring services from HomePage and it can focus on it's responsibilty.
+
+If we have a test class we can now do something like:
+``` js
+//Test class
+public void makeHomePageReturnBadQualityImages()
+{
+  IFormatter fakeFormatter = Mock<pngFormatter>().make.it.return("bad quality");
+  var pictureService = Mock<PictureService>().with.constructor(fakeFormatter);
+  var homePage = new HomePage(fakeFormatter, pictureService);
+
+  //action
+  Assert.equal(homePage.RenderView(), "bad quality");
+}
+```
+
+See the test class has total control of the kind of implementation of the services, ideally we would also pass the PictureService as an interface but that's for another day :).
+
+
+### Conclusion
+DI helps by enforcing the single responsibilty principle thus IoC.
+I hope this helps you see the benefit of DI or at least let's you see what it is all about.
+
+Stay tuned for more. Remember keep pretending until you are not, Bye!
