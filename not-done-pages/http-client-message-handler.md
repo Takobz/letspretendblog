@@ -58,3 +58,53 @@ In the above we wanted to see if we didn't a null or empty string will we get th
 
 
 ### Why FakeItEasy can't mock HttpClient.
+FakeItEasy can only fake anything that can be overridden, extended or implemented. Mostly you will find yourself mock interfaces and bending the behavior of an interface's implementation to suit your test cases.
+
+Check out this [link](https://fakeiteasy.readthedocs.io/en/stable/what-can-be-faked/) for more info.
+
+HttpClient doesn't implement an interface this causes issues when trying to use FakeItEasy. In the next section we will learn a quick overview of the HttpClient class that will enable us to "mock" this object.
+
+### Structure of HttpClient
+From the above section we have learned that HttpClient doesn't implement as interface thus FakeItEasy can't mock it. 
+
+But if we look into the HttpClient.cs class we will see a constructor like this: `public HttpClient(HttpMessageHandler handler);` and digging deeper you will see that [HttpMessageHandler](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpmessagehandler) is an abstract class. 
+
+But what is this handler and what does it do, why is it important to us?
+
+##### A word on HttpMessageHandler
+The short explanation would be, the handler receives requests and create http response via `HttpMessageResponse`. It brings back the response via the abstract method called [SendAsync](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpmessagehandler.sendasync) that we can override.
+
+This essentially means we can create our own handler that implements HttpMessageHandler thus override `SendAsync` with our implementation and since it is the one doing all the request processing and give response then we can just configure it to give us a desired result. 🙂
+
+I have left a lot of detail in this breakdown but this will be enough to help us mock HttpClient.
+
+
+### Mocking HttpClient.
+Suppose we have a classes `DataService` that implements an interface called `IDataService`:
+
+```js
+//*******IDataService interface
+public interface IDataService
+{
+    Data GetDataFromAPI(string query);
+}
+
+//******DataService class
+public class DataService : IDataService 
+{
+    //injected via DI
+    private readonly HttpClient _httpClient;
+
+    public DataService(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+    }
+
+    public Data GetDataFromAPI(string query)
+    {
+        httpClient.BaseAddress = $"http://random.api.data/"
+    }
+
+}
+```
+
