@@ -9,9 +9,9 @@ const FeatureList = [
     description: (
       <>
         <p>
-          I created this blogging site to help myself keep note of software concepts I come across.
+          I created this blogging site to help myself keep notes of software concepts I come across.
           I have a bad record of having notes all over and it's hard to keep track sometimes. 
-          I came up with the title <b>"Let's Pretend I Know This"</b> because in the blogposts I will be exploring concepts as 
+          I came up with the title <b>"Let's Pretend I Know This"</b> because in the blog posts I will be exploring concepts as 
           I understand them.
         </p>
       </>
@@ -22,7 +22,7 @@ const FeatureList = [
     description: (
       <>
         <p>
-        I write software. I am also trying to be active on the open source community.
+        I write software. I am also trying to be active in the open source community.
         I also enjoy reading about software thus writing some personal notes about
         cool software concepts like: designs, practices, etc.
         </p>
@@ -36,8 +36,8 @@ const FeatureList = [
         <p>
         I am someone who stole{''} <a href="https://blog.johnnyreilly.com/about">John Reilly's</a> About page structure 
         because why not <Emoji symbol='😀'></Emoji>.
-        I am a software developer by proffesion (relatively new to this). 
-        I went to the <a href='https://en.wikipedia.org/wiki/University_of_the_Witwatersrand'>University Of Witwatersrand</a> where I studies Computer Science.
+        I am a software developer by profession (relatively new to this). 
+        I went to the <a href='https://en.wikipedia.org/wiki/University_of_the_Witwatersrand'>University Of Witwatersrand</a> where I studied Computer Science.
         </p>
       </>
     ),
