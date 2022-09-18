@@ -106,3 +106,85 @@ This will give me the result:
 In the ParentComponent I will just reference this file with `import ChildComponent from './ChildComponent';`. These two files ChildComponent and ParentComponent are in the same directory.
 :::
 
+#### Some Changes:
+To demonstrate the data passing data I will edit my Parent and Child components. Please bare with me 🙂. This how both files will change:
+
+``` js
+//ChildComponent.js
+import React, { useState } from "react";
+
+const ChildComponent = (props) => {
+  const [value, setValue] = useState("");
+  const [displayValue, setDisplayValue] = useState("");
+
+  const handleChange = (event) => {
+    setValue(event.target.value);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setDisplayValue(value);
+    setValue("");
+  };
+
+  return (
+    <>
+      <h3>The User Inputted: {displayValue}</h3>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Insert Data Here:
+          <input type="text" onChange={handleChange} value={value} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    </>
+  );
+};
+
+export default ChildComponent;
+```
+
+``` js
+//ParentComponent.js
+import React from "react";
+import ChildComponent from "./ChildComponent";
+
+const ParentComponent = () => {
+  return (
+    <>
+      <h1>Parent Component</h1>
+      <ChildComponent />
+    </>
+  );
+};
+
+export default ParentComponent;
+```
+
+The Result:  
+[child-form](/static/img/blog-images/react-pass-data/child-form.PNG)
+
+The above just displays whatever a users inputs and if you check my child component now has a `props` argument. Why? Well let's talk about props a little.
+
+### Ohh wow Props!
+So far I just touched base on some ReactJs functionalities and didn't talk about moving data around. Props will help us move data from parent-to-child and child-to-parent (in a slick way!).  
+
+`Props` is short for properties and this argument can get data from Parent and pass down to the child component, let's see how.  
+
+If in my ParentComponent file I do something like:  
+``` js
+//define const in ParentComponent function/component
+const message = 'I come from parent'
+
+//create custom property called parentMsg
+//this custom property can have any name.
+<ChildComponent parentMsg={message}>
+```
+
+To get this piece of data in the child I will call `props.parentMsg`. Like this:  
+``` js
+<h5>Message from parent: {props.parentMsg}</h5>
+```
+
+This will result into something like:  
+[message-from-parent](/static/img/blog-images/react-pass-data/message-from-parent.PNG)
