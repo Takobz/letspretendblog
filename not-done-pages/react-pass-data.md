@@ -233,3 +233,92 @@ A pointer is just a reference to a function. What we actually saying is telling 
 Okay I was just trying to lay the ground here, let's see how we can do this with our custom components.
 
 ### Ohh Wait, Our Very Own Event Prop!
+I will have to edit my components such that we have an unordered list rendered in the parent component.  
+
+Parent Component
+``` js
+import React, { useState } from "react";
+import ChildComponent from "./ChildComponent";
+
+const ParentComponent = () => {
+  const [listOfMessage, setListOfMessage] = useState([
+    "First Message",
+    "Second Message",
+  ]);
+
+  return (
+    <>
+      <h1>Parent Component</h1>
+      <ChildComponent />
+      <ul>
+        {listOfMessage.map((message, index) => (
+          <li key={index}><p>{message}</p></li>
+        ))}
+      </ul>
+    </>
+  );
+};
+
+export default ParentComponent;
+```
+The child component:
+``` js
+import React, { useState } from "react";
+
+const ChildComponent = (props) => {
+  const [value, setValue] = useState("");
+
+  const handleChange = (event) => {
+    setValue(event.target.value);
+  };
+
+  return (
+    <>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Insert Data Here:
+          <input type="text" onChange={handleChange} value={value} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    </>
+  );
+};
+
+export default ChildComponent;
+```
+::: note
+useReact() function is a React hook for creating state variables. Hooks help provide react capabilities to function components (capabilities you would otherwise find in class components). Please visit [ReactJs hooks](https://reactjs.org/docs/hooks-state.html) for more.
+:::
+
+That will result to this:  
+[form-list](/static/img/blog-images/react-pass-data/form-list.PNG)
+
+So to make this a little interesting let's try add a new message when we submit a form (i.e move data from Child to Parent).  
+
+First we are going to create a handler/listner/event prop. This is the function we are going to define in the Parent component then pass the pointer to the child. Let's the following in the ParentComponent.js:  
+
+``` js
+  const handleMessageAdd = (message) => {
+    setListOfMessage((prevListOfMessages) => {
+        return [...prevListOfMessages, message];
+    })
+  }
+
+//in return function
+//pass pointer to handleMessageAdd no "()"
+<ChildComponent onAddMessage={handleMessageAdd}/>
+```
+
+What this does is to add a message to our `listOfMessages` state variable. Then React will re-render our UI since `listOfMessages` is a state variables. We then pass the pointer to `handleMessageAdd` as prop to the child component.  
+
+In the child component let's add this bit of code:
+
+``` js
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    //function will be triggered in parent component.
+    props.onAddMessage(value);
+    setValue('')
+  };
+```
