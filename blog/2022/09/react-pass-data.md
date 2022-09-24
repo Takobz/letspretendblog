@@ -1,5 +1,5 @@
 ---
-slug: Passing data around in ReactJs
+slug: passing-data-around-in-reactJs
 title: Passing data around in ReactJs
 authors:
   - name: Khutso Kobela
@@ -29,9 +29,9 @@ Without wasting any time let's dive straight into the concepts.
 
 ### A Component
 
-As you might know ReactJs uses components to build up it's user interface. A component can be anything ranging from a Card, Widget that consists of a text input and a button or simply a div with text.
+As you might know ReactJs uses components to build up it's user interface. A component can be anything ranging from a Card or a Widget that consists of a text input and a button or simply a div with text.
 
-The idea of these components is to have UI elements that we can re-use and call as you would call a normal html tag like `div` `h1` etc.
+The idea of these components is to have UI elements that we can re-use  as we would with normal html tags like `div` `h1` etc.
 
 Below is how a component is created in ReactJs. This component just renders the text **Parent Component** on the screen:
 
@@ -49,7 +49,7 @@ const ParentComponent = () => {
 export default ParentComponent;
 ```
 
-If we reference this component in the App.js would do this:
+If we reference this component in the App.js we would do this:
 
 ```js
 import "./App.css";
@@ -66,8 +66,8 @@ function App() {
 export default App;
 ```
 
-We will see this:
-![component-example](/static/img/blog-images/react-pass-data/component-example.PNG)
+We will see this:  
+![component-example](/img/blog-images/react-pass-data/component-example.PNG)
 
 :::note
 To learn more about Components visit [React site](https://reactjs.org/docs/components-and-props.html) 🙂
@@ -112,15 +112,15 @@ export default ParentComponent;
 ```
 
 This will give me the result:  
-![child-in-parent](/static/img/blog-images/react-pass-data/child-in-parent.PNG)
+![child-in-parent](/img/blog-images/react-pass-data/child-in-parent.PNG)
 
-::: note
+:::note
 In the ParentComponent I will just reference this file with `import ChildComponent from './ChildComponent';`. These two files ChildComponent and ParentComponent are in the same directory.
 :::
 
 #### Some Changes:
 
-To demonstrate the data passing data I will edit my Parent and Child components. Please bare with me 🙂. This how both files will change:
+To demonstrate how passing data works I will edit my Parent and Child components so please bare(🐻) with me 🙂. This how both files will change:
 
 ```js
 //ChildComponent.js
@@ -175,7 +175,7 @@ export default ParentComponent;
 ```
 
 The Result:  
-[child-form](/static/img/blog-images/react-pass-data/child-form.PNG)
+![child-form](/img/blog-images/react-pass-data/child-form.PNG)
 
 The above just displays whatever a users inputs and if you check my child component now has a `props` argument. Why? Well let's talk about props a little.
 
@@ -183,7 +183,7 @@ The above just displays whatever a users inputs and if you check my child compon
 
 So far I just touched base on some ReactJs functionalities and didn't talk about moving data around. Props will help us move data from parent-to-child and child-to-parent (in a slick way!).
 
-`Props` is short for properties and this argument can get data from Parent and pass down to the child component, let's see how.
+`Props` is short for properties and this argument can get data from the parent component and pass it down to the child component, let's see how.
 
 If in my ParentComponent file I do something like:
 
@@ -196,44 +196,55 @@ const message = 'I come from parent'
 <ChildComponent parentMsg={message}>
 ```
 
-To get this piece of data in the child I will call `props.parentMsg`. Like this:
+To get this piece of data in the child I will call `props.parentMsg` from inside the child component. Like this:
 
 ```js
 <h5>Message from parent: {props.parentMsg}</h5>
 ```
 
 This will result into something like:  
-[message-from-parent](/static/img/blog-images/react-pass-data/message-from-parent.PNG)
+![message-from-parent](/img/blog-images/react-pass-data/message-from-parent.PNG)
 
-As we can see props allow the parent component to pass `data down to the child` but how does the child give data to the parent component? Well, props and points. Let's look at how that is done.
+As we can see props allow the parent component to pass `data down to the child` but how does the child give data to the parent component? Well, props and pointers. Let's look at how that is done.
 
 ### Event Props
 
-Event props are used to get data from a child component and then pass to the parent component. You essentially pass a pointer to a function via props to a child component then this get executed in parent with data from child component. Okay! That sounded like something from a movie, let us slow down and look at what I mean by all this. 🙂
+Event props are used to get data from a child component and then pass the data to the parent component. You essentially pass a pointer to a function defined in the parent component via props to a child component.  
 
-One example of this would be the `onChange` event handler. If you look closely at this piece of code:
+This function will get executed in the parent component when called in child component and it can have data from the child component. Okay! That sounded like something from a movie, let us slow down and look at what I mean by all this. 🙂
+
+One example of this would be the `onChange` event handler. For a minute let's think of the custom html input tag as a ReactJs component then look closely at this piece of code from the ChildComponent.js file:
 
 ```js
 <input type="text" onChange={handleChange} value={value} />
 ```
 
-from the ChildComponent.js file we can see that our handleChange method recieves an `event` argument:
+we also added handleChange function in the child component that recieves an `event` argument:
 
 ```js
 const handleChange = (event) => {
   setValue(event.target.value);
 };
 ```
-We then use that event object to get the data from the input "component". What we did here was to a function pointer as a prop to the input "component" then whenever a new value is inserted in the input box it called the handleChange function from the parent component i.e) ChildComponent with a value that it created. It pushed up the event object to the component that uses it, in this instance the ChildComponent.js
+:::note
+Whenever we click on a button, input or other html elements an onClick/onChange event happens. 
+Whenever this happens in ReactJs, reacts brings back an event object that we can use.
 
-::: note
-A pointer is just a reference to a function. What we actually saying is telling input to call the function we have pointed to and pass some data to it (i.e event object which has some data from the child).
+More on events [here](https://www.w3schools.com/js/js_events.asp). This is just a Javascript conecpt extended in ReactJs. Events are not a ReactJs feature.
 :::
 
-Okay I was just trying to lay the ground here, let's see how we can do this with our custom components.
+We then use that event object to get the data from the input "component". What we did here was to a pass function pointer of `handleChange` as a `onChange` prop to the input "component" then whenever a new value is inserted (onChnage event happens) in the input box the handleChange function from the parent component will be called with event object from the child component (input component). It pushed up (passed data) the event object to the component that uses it, in this instance the ChildComponent.js then the ChildComponent.js displayed the value.
+
+:::note
+A pointer is just a reference to a function. What we are actually saying here is that whenever an onChange happens the input component should use the function handleChange to "react" to the change. The code that will run will be from the ChildComponent.js.
+:::
+
+That was a little too much, I am sure an example can do now. Let's see how we can do this with our custom components.
 
 ### Ohh Wait, Our Very Own Event Prop!
-I will have to edit my components such that we have an unordered list rendered in the parent component.  
+I will have to edit my components such that we have an unordered list rendered in the Parentcomponent.js file. Our ChildComponent.js will still have a form with one submit button.  Whenever we submit some text that text will be rendered in the ParentComponent.js. Intially our list has two messages/text/strings
+
+This example will help see how the child can pass data to the parent component
 
 Parent Component
 ``` js
@@ -287,12 +298,14 @@ const ChildComponent = (props) => {
 
 export default ChildComponent;
 ```
-::: note
+:::note
 useReact() function is a React hook for creating state variables. Hooks help provide react capabilities to function components (capabilities you would otherwise find in class components). Please visit [ReactJs hooks](https://reactjs.org/docs/hooks-state.html) for more.
+
+whenever state variables change react renders the view with the new data, no reload needed!
 :::
 
 That will result to this:  
-[form-list](/static/img/blog-images/react-pass-data/form-list.PNG)
+![form-list](/img/blog-images/react-pass-data/form-list.PNG)
 
 So to make this a little interesting let's try add a new message when we submit a form (i.e move data from Child to Parent).  
 
@@ -300,6 +313,7 @@ First we are going to create a handler/listner/event prop. This is the function 
 
 ``` js
   const handleMessageAdd = (message) => {
+    //undate list with message from child
     setListOfMessage((prevListOfMessages) => {
         return [...prevListOfMessages, message];
     })
@@ -322,3 +336,22 @@ In the child component let's add this bit of code:
     setValue('')
   };
 ```
+
+Now when I submit my form we will call `handleMessageAdd` from the parent. This is possible because in the child we have a reference pointer `onAddMessage` passed as a prop. **So technically we are calling a function in ParentComponent using the data from the ChildComponent**
+
+:::note
+The child component recieves a pointer and when we invoke this pointer in the child component like this: `props.onAddMessage(value)` we are just calling the parent function we passed in the prop with data from the child component.
+:::
+
+This way the parent component can be able to act on the data from the child. Here is the final product (not fancy looking but hopefully the point is clear):
+
+![react-pass-data](/img/blog-images/react-pass-data/react-pass-data.gif)
+
+### Conclusion
+This has been a long one, but here is a quick summary of to passing data in ReactJs:
+- To pass data from parent to child. Define custom property on the child component like: `<ChildComponent customProp={data}>`
+- In the child component access the data from the props argument like: `props.customProp` this will give you whatever value `data` has.
+- To pass data from child to parent. Define custom property BUT pass a pointer to a function defined in the parent. 
+- passing a pointer to a function as a prop allows us to use the child data in the parent component.
+
+Until next time, happy coding! 👋🚀
