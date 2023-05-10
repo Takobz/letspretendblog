@@ -19,6 +19,7 @@ The code referenced here will be from this [repo](https://github.com/Takobz/sign
 ### Topics
 - What is SignalR ?
 - Why Should I use it ?
+- Set up to use SignalR
 - Concepts: What are Hubs, Events and Methods in SignalR
 - Doing updates from services with IHubContext.
 - Conclusion
@@ -41,5 +42,34 @@ Why? Well imagine you have an app that needs live data from your database as soo
 
 Another big win is that clients can choose what is important to them and listen to those events and then inform other clients of their changes.  
 
+
+### Set up to use SignalR
+
 ### Concepts: What are Hubs, Events and Methods in SignalR
 Now, the action! In this section we are going to explore some key conecpts with code snippets! 🐱‍🏍
+
+A Hub is a server concept in SignalR terms. It simply just represents a signalr server. This will be a normal c# class that extends the `Microsoft.AspNetCore.SignalR.Hub<T>` class where T is an interface that describes events. This is the class the clients will communicate with and it can have methods that the clients can call.  
+
+Hub Example:  
+```js
+using Microsoft.AspNetCore.SignalR;
+
+namespace SignalRExample.Hubs;
+
+public class DatabaseHub : Hub<DatabaseHubMethods>
+{
+    public async Task DatabaseChange(string clientName)
+    {
+        await Clients.All.DatabaseChanged(clientName);
+    }
+}
+
+public interface DatabaseHubMethods
+{
+    Task DatabaseChanged(string clientName);
+}
+```
+
+This Hub has a **method** called `DatabaseChange()` which can be called by clients and they can pass a client string. In the method we have an **event** `DatabaseChanged` which takes the `clientName`.
+
+#### DatabaseHub Explained.
