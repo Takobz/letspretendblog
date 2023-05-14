@@ -19,21 +19,30 @@ The code referenced here will be from this [repo](https://github.com/Takobz/sign
 ### Topics
 - What is SignalR ?
 - Why Should I use it ?
-- Set up to use SignalR
-- Concepts: What are Hubs, Events and Methods in SignalR
+- Set up to use SignalR (Server-side)
+- A mini project with concepts: What are Hubs, Events and Methods in SignalR
 - Doing updates from services with IHubContext.
 - Conclusion
 
 ### What is SignalR ?
-Before we even start looking at SignalR I think it would cool to understand what it is and what does it do.  
+Before we even start looking at SignalR I think it would be cool to understand what it is and what does it do. 
 
-SignalR is .NET's solution to allow servers to send information to clients as the change happens. Both the client and the server can invoke methods on each other. This allows the server to call the client thus tell the client about the changes it is interested in. A client can subscribe to changes, called events.
+SignalR is .NET's solution to allow servers to send information to clients as soon the change happens in the server. Both the client and the server can invoke methods on each other. This allows the server to call the client thus tell the client about the changes it is interested in. A client can subscribe to changes, called events.
 
-A client can also call methods on the server which can indirectly cause an event to fire. This ability to be able to have either parties to call one another is known as a duplex communication. The communication is both ways, unlike the traditional client-server relationship were the client is the only one calling the server.
+The image below shows the typical architecture of SignalR:
+![siganlr-typical-architecture](../static/img/blog-images/signalr-basics/siganlr-typical-architecture.png)
 
-SignalR uses RPC (Remote Procedure Call) to achieve this duplex communication. You can think of this as a way to call a function on the client from the server and vice-versa. The client would give the server parameters and a function name that the client wishes to call on the server this is done via connection that can be: websockets, long polling or server-client event.  
+The image above shows some of the fundamental parts of SignalR. We have a `server` that has SiganlR. Which in turns has a Hub which has Events and Methods. Note, a Hub has events and methods in it.
 
-SignalR will choose what kind of connection it will use. 
+A `Hub` exposes our signalR endpoints. It enables clients to communicate with the server and vice-versa.
+
+`Events` are the type of actions that clients can subscribe to. So whenever an event happens in the server a client that is subscribed to it will get notified on change. Note that a client can subscribe to multiple events as we can see client 4 from the image.  
+
+`Methods` these are functions on the server/Hub that can be called from the client side code. The client should provide the appropriate parameters and method name to invoke the correct method. 
+
+:::note
+The Hub methods can be used to indirectly cause an event from the client on the server but they are not necessarily for firing events from a client but can be used for that function. It's calling a function from your client called in your server code.
+:::
 
 ### Why Should I use it ?
 There are number of reasons to use SignalR but my number one take is live updates. If you have an app that needs to know of changes as soon as they happen (chat notification or live updates like order tracking) then you might need to consider SignalR.  
@@ -42,13 +51,40 @@ Why? Well imagine you have an app that needs live data from your database as soo
 
 Another big win is that clients can choose what is important to them and listen to those events and then inform other clients of their changes.  
 
-
 ### Set up to use SignalR
 
-### Concepts: What are Hubs, Events and Methods in SignalR
+###  A mini project with concepts: What are Hubs, Events and Methods in SignalR
 Now, the action! In this section we are going to explore some key conecpts with code snippets! 🐱‍🏍
 
-A Hub is a server concept in SignalR terms. It simply just represents a signalr server. This will be a normal c# class that extends the `Microsoft.AspNetCore.SignalR.Hub<T>` class where T is an interface that describes events. This is the class the clients will communicate with and it can have methods that the clients can call.  
+#### Problem Statement:
+We want to have some frontent clients notified whenever a change happens on a certain table that we have in our database. So differnt client apps can subscribe to a signalR change event of any table they are interested in and we will notify them when there is a change. 
+
+Image of how this will work:
+
+
+#### Set Up:
+The .NET Solution will have an ASP.NET Web API with .NET 7. The frontend will be a simple React App that just listens to events.
+The database will be sqlite database, to query the database we are going to use Entity Framework Core. Simple stuff 😉.  
+
+Our server will be our ASP.NET Web API and our client a React App. It is worth to mention that a client can also be another ASP.NET Web API.
+
+Here is a mini diagram of flow:  
+![example-architecture](../static/img/blog-images/signalr-basics/signalr-example-architecture.png)
+
+We are simply going to have a controller that does a database table change then uses the Hub to fire an event that a table has changed.
+
+##### Set Up SignalR in ASP.NET:
+- In our Program.cs file we need to add our hub dependencies to service collections with this line: `builder.Services.AddSignalR()`
+- Create [Hub folder](https://github.com/Takobz/signalr-example/tree/main/signalr-example/Hubs) in the root of our project called Hubs as I did in my repo
+- Inside the folder create a file called `DatabaseHub.cs`. This folder will have our Hub class and interface that describes our events.
+- Then in our Program.cs we map a url to our Hub with this line: `app.MapHub<DatabaseHub>("/database-hub")` this means our hub url will be like this `https://localhost:<port>/database-hub`
+
+This should be enough for a set-up no eventing yet but first steps.  
+
+##### Hub Class
+A Hub is a server concept in SignalR terms. It simply just represents a signalr server. This will be a normal c# class that extends the `Microsoft.AspNetCore.SignalR.Hub<T>` 
+
+The Type `T` is an interface that has all the events the Hub can expose.
 
 Hub Example:  
 ```js
@@ -56,20 +92,78 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace SignalRExample.Hubs;
 
+//Hub
 public class DatabaseHub : Hub<DatabaseHubMethods>
 {
-    public async Task DatabaseChange(string clientName)
+    //This is a method, it can be called from the client's code.
+    public async Task NotifyAll(string clientName)
     {
-        await Clients.All.DatabaseChanged(clientName);
+       //I can cause an event in here by calling Clients property.
+       //or something unrelated to SignalR.
     }
 }
 
-public interface DatabaseHubMethods
+//Events Interface
+public interface DatabaseHubEvents
 {
-    Task DatabaseChanged(string clientName);
+    //Event we are going to fire when Product table changes.
+    Task ProductTableChanged(TableChangeModel changeModel);
+
+    //Event we are going to fire when Person table changes.
+    Task PersonTableChanged(TableChangeModel changeModel);
+}
+
+//Just a model
+public class TableChangeModel
+{
+    public string TableName { get; set; } = string.Empty;
+    public int ItemId { get; set; }
 }
 ```
 
-This Hub has a **method** called `DatabaseChange()` which can be called by clients and they can pass a client string. In the method we have an **event** `DatabaseChanged` which takes the `clientName`.
+When an event `ProductTableChanged` is fired clients that subscribed to the event will receive a `TableChangeModel` object which has the data TableName and ItemId. 
 
-#### DatabaseHub Explained.
+We will see how that is done on the client side later but for now. This will be enough. I want us to talk about the `Clients` property in Hubs namespace
+
+##### Clients 
+`IHubCallerClients<T> Clients` This property has the ability to call all clients that are subscribed to an event. It also has the capability to group client calls:
+
+- Clients.All calls all clients that are listening to an event.
+- Clients.Groups - calls a certain group of clients
+
+This is what we will use to cause events. We can edit the above code to be like this:
+```js
+public class DatabaseHub : Hub<DatabaseHubMethods>
+{
+    //Notify every client that subscribed to this event.
+    public async Task NotifyAll(TableChangeModel changeModel)
+    {
+       await Clients.All.ProductTableChanged(changeModel);
+    }
+}
+```
+
+For more info on how to scope SignalR events visit this [Microsoft page](earn.microsoft.com/en-us/aspnet/core/signalr/groups).
+
+##### Entity Framework Models
+We will have simple EFCore models that represent tables in our database.  
+- ProductModel:
+``` js
+public class Product
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; }
+    public string ProductDescription { get; set; }
+}
+```
+- PersonModel:
+``` js
+public class Person
+{
+    public int PersonId { get; set; }
+    public string Name { get; set; }
+    public string Surname { get; set; }
+}
+```  
+
+For Data Models and set up, please [Repo](https://github.com/Takobz/signalr-example)
