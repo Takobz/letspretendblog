@@ -59,9 +59,6 @@ Now, the action! In this section we are going to explore some key conecpts with 
 #### Problem Statement:
 We want to have some frontent clients notified whenever a change happens on a certain table that we have in our database. So differnt client apps can subscribe to a signalR change event of any table they are interested in and we will notify them when there is a change. 
 
-Image of how this will work:
-
-
 #### Set Up:
 The .NET Solution will have an ASP.NET Web API with .NET 7. The frontend will be a simple React App that just listens to events.
 The database will be sqlite database, to query the database we are going to use Entity Framework Core. Simple stuff 😉.  
@@ -87,13 +84,13 @@ A Hub is a server concept in SignalR terms. It simply just represents a signalr 
 The Type `T` is an interface that has all the events the Hub can expose.
 
 Hub Example:  
-```js
+```csharp
 using Microsoft.AspNetCore.SignalR;
 
 namespace SignalRExample.Hubs;
 
 //Hub
-public class DatabaseHub : Hub<DatabaseHubMethods>
+public class DatabaseHub : Hub<IDatabaseHubEvents>
 {
     //This is a method, it can be called from the client's code.
     public async Task NotifyAll(string clientName)
@@ -104,7 +101,7 @@ public class DatabaseHub : Hub<DatabaseHubMethods>
 }
 
 //Events Interface
-public interface DatabaseHubEvents
+public interface IDatabaseHubEvents
 {
     //Event we are going to fire when Product table changes.
     Task ProductTableChanged(TableChangeModel changeModel);
@@ -121,34 +118,38 @@ public class TableChangeModel
 }
 ```
 
-When an event `ProductTableChanged` is fired clients that subscribed to the event will receive a `TableChangeModel` object which has the data TableName and ItemId. 
+When an event `ProductTableChanged` is fired clients that are subscribed to the event will receive a `TableChangeModel` object which has the data TableName and ItemId. 
 
 We will see how that is done on the client side later but for now. This will be enough. I want us to talk about the `Clients` property in Hubs namespace
 
-##### Clients 
+##### SignalR Hub Clients 
 `IHubCallerClients<T> Clients` This property has the ability to call all clients that are subscribed to an event. It also has the capability to group client calls:
 
-- Clients.All calls all clients that are listening to an event.
+- Clients.All - calls all clients that are listening to an event.
 - Clients.Groups - calls a certain group of clients
 
 This is what we will use to cause events. We can edit the above code to be like this:
-```js
+```csharp
 public class DatabaseHub : Hub<DatabaseHubMethods>
 {
     //Notify every client that subscribed to this event.
     public async Task NotifyAll(TableChangeModel changeModel)
     {
+        //Send changeModel to All subscribed clients
+        //Note we are causing an Event inside a Method, we don't need to do this all the time
        await Clients.All.ProductTableChanged(changeModel);
     }
 }
 ```
+:::note
+In this blog we are going to Call all clients for more info on how to scope groups for more info on how to scope SignalR events visit this [Microsoft page](https://learn.microsoft.com/en-us/aspnet/core/signalr/groups).
+:::
 
-For more info on how to scope SignalR events visit this [Microsoft page](earn.microsoft.com/en-us/aspnet/core/signalr/groups).
 
 ##### Entity Framework Models
 We will have simple EFCore models that represent tables in our database.  
 - ProductModel:
-``` js
+``` csharp
 public class Product
 {
     public int ProductId { get; set; }
@@ -157,7 +158,7 @@ public class Product
 }
 ```
 - PersonModel:
-``` js
+``` csharp
 public class Person
 {
     public int PersonId { get; set; }
@@ -166,4 +167,63 @@ public class Person
 }
 ```  
 
-For Data Models and set up, please [Repo](https://github.com/Takobz/signalr-example)
+For Data Models and set up, please see [Repo](https://github.com/Takobz/signalr-example)
+
+### Causing An Event To Fire 🔥
+For us to cause an event to fire we just need to call the `Clients.All.<my-event-function>` So we are going to create a Controller that can be POSTED or PUT into and then it will fire an event after a successful modification.  
+
+Here is the Controller:  
+```csharp
+public class SignalRController : ControllerBase
+{
+    private readonly IHubContext<DatabaseHub, IDatabaseHubEvents> _dbHubContext;
+    private readonly ISignalRDbContext _signalRDbContext;
+
+    SignalRController(
+        IHubContext<DatabaseHub, IDatabaseHubEvents> dbHubContext,
+        ISignalRDbContext signalRDbContext)
+    {
+        //make sure you have registerd IDatabaseHubEvents in the DI container
+        //i.e services.AddSingleton<IDatabaseHubEvents, DatabaseHub>()
+        _dbHubContext = dbHubContext;
+        _signalRDbContext = signalRDbContext;
+    }
+
+    [Route("/add-person")]
+    [HttpPost]
+    public async Task<IActionResult> AddPerson(string name, string surname)
+    {
+        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(surname))
+            return BadRequest("user must have name and surname");
+
+        var person = new Person
+        {
+            Name = name,
+            Surname = surname
+        };
+        DatabaseResult<Person> result = _signalRDbContext.AddPerson(person);
+        if (result.Status == Status.Success)
+        {
+            var changeModel = new TableChangeModel 
+            {
+                TableName = "Person",
+                ItemId = result.Data.Id
+            }
+
+            //Calling all clients and giving them the change model.
+            await _dbHubContext.Client.All.ProductTableChanged(changeModel);
+            return Ok("User Added and alerted subscribers!")
+        }
+
+        //generates appropriate response based on database result
+        return GenerateResponseBasedOnStatus(result);
+    }
+}
+```
+
+In the above we register our Hub via IHubContext interface and our DbContext that is behind an interface. The important line here is:   
+`await _dbHubContext.Client.All.ProductTableChanged(changeModel);` this lines calls subscribed clients by firing an event `ProductTableChanged` thus passing down the TableChangeModel data can be used by all the subscribed clients.  
+
+And that's it, that's how you fire an event. For all the controller source code check out: [SignalR Example Repo](https://github.com/Takobz/signalr-example/tree/main/signalr-example/Controllers).
+
+### Configurig A Client App
