@@ -150,22 +150,29 @@ In this blog we are going to Call all clients for more info on how to scope grou
 We will have simple EFCore models that represent tables in our database.  
 - ProductModel:
 ``` csharp
-public class Product
+public class Product : Entity
 {
-    public int ProductId { get; set; }
-    public string ProductName { get; set; }
-    public string ProductDescription { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public string ProductDescription { get; set; } = string.Empty;
 }
 ```
 - PersonModel:
 ``` csharp
-public class Person
+public class Person : Entity
 {
-    public int PersonId { get; set; }
-    public string Name { get; set; }
-    public string Surname { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Surname { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
 }
 ```  
+
+- Entity
+``` csharp
+public class Entity 
+{
+    public int Id {get; set;}
+}
+```
 
 For Data Models and set up, please see [Repo](https://github.com/Takobz/signalr-example)
 
@@ -199,8 +206,10 @@ public class SignalRController : ControllerBase
         var person = new Person
         {
             Name = name,
-            Surname = surname
+            Surname = surname,
+            UserName = $"{Guid.NewGuid()}"
         };
+        
         DatabaseResult<Person> result = _signalRDbContext.AddPerson(person);
         if (result.Status == Status.Success)
         {
@@ -208,21 +217,21 @@ public class SignalRController : ControllerBase
             {
                 TableName = "Person",
                 ItemId = result.Data.Id
-            }
+            };
 
             //Calling all clients and giving them the change model.
-            await _dbHubContext.Client.All.ProductTableChanged(changeModel);
-            return Ok("User Added and alerted subscribers!")
+            await _dbHubContext.Clients.All.ProductTableChanged(changeModel);
+            return Ok("User Added and alerted subscribers!");
         }
 
         //generates appropriate response based on database result
-        return GenerateResponseBasedOnStatus(result);
+        return Conflict();
     }
 }
 ```
 
 In the above we register our Hub via IHubContext interface and our DbContext that is behind an interface. The important line here is:   
-`await _dbHubContext.Client.All.ProductTableChanged(changeModel);` this lines calls subscribed clients by firing an event `ProductTableChanged` thus passing down the TableChangeModel data can be used by all the subscribed clients.  
+`await _dbHubContext.Clients.All.ProductTableChanged(changeModel);` this lines calls subscribed clients by firing an event `ProductTableChanged` thus passing down the TableChangeModel data can be used by all the subscribed clients.  
 
 And that's it, that's how you fire an event. For all the controller source code check out: [SignalR Example Repo](https://github.com/Takobz/signalr-example/tree/main/signalr-example/Controllers).
 
