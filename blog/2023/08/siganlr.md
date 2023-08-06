@@ -31,7 +31,7 @@ Before we even start looking at SignalR I think it would be cool to understand w
 SignalR is .NET's solution to allow servers to send information to clients as soon the change happens in the server. Both the client and the server can invoke methods on each other. This allows the server to call the client thus tell the client about the changes it is interested in. A client can subscribe to changes, called events.
 
 The image below shows the typical architecture of SignalR:
-![siganlr-typical-architecture](../static/img/blog-images/signalr-basics/siganlr-typical-architecture.png)
+![siganlr-typical-architecture](../../../static/img/blog-images/signalr-basics/siganlr-typical-architecture.png)
 
 The image above shows some of the fundamental parts of SignalR. We have a `server` that has SiganlR. Which in turns has a Hub which has Events and Methods. The connection is bi-directional meaning the server can call the client and vice-versa.
 
@@ -65,7 +65,7 @@ The database will be sqlite database, to query the database we are going to use 
 Our server will be our ASP.NET Web API and our client a React App. It is worth a mention that a client app can also be another ASP.NET Web API.
 
 Here is a mini diagram of flow:  
-![example-architecture](../static/img/blog-images/signalr-basics/signalr-example-architecture.png)
+![example-architecture](../../../static/img/blog-images/signalr-basics/signalr-example-architecture.png)
 
 We are simply going to have a controller that does a database table change then uses the Hub to fire an event that a table has changed.
 
@@ -318,7 +318,7 @@ In the above example we are just building our SignalR connection. The SignalR cl
 In my App.js I will just start a connection like this: `signalRHubService.startConnection("http://localhost:5078/database-hub");`
 
 If you check your Networks in dev tools, you will see something similar:
-![](../static/img/blog-images/signalr-basics/signal-r-hub-connection-in-browser.png)
+![](../../../static/img/blog-images/signalr-basics/signal-r-hub-connection-in-browser.png)
 
 This indicates that the connection to the hub has been established. Now subscribing to an event.
 
@@ -377,19 +377,19 @@ Then in my [App.js](https://github.com/Takobz/signalr-example/blob/6c7dac4bb9df6
 ```
 
 This is how the list would look like (Don't judge my UI skills please! 😂):
-![](../static/img/blog-images/signalr-basics/signalr-client-listing-changes.png)
+![](../../../static/img/blog-images/signalr-basics/signalr-client-listing-changes.png)
 
 ## Causing An Event To Fire 🚀
 For us to receive any events will need the following:
 - Run .NET Web API (using my localhost) by running `dotnet run` on my .NET CLI in directory that has my [signalr-example.csproj](https://github.com/Takobz/signalr-example/blob/main/signalr-example/signalr-example.csproj)
 - Run React App by running `npm start` in my command line, result:
-![](../static/img/blog-images/signalr-basics/signalr-client-empty.png)
+![](../../../static/img/blog-images/signalr-basics/signalr-client-empty.png)
 - In Postman I will call my Web API to add a user:
-![](../static/img/blog-images/signalr-basics/signalr-postman-pre-call.png)
+![](../../../static/img/blog-images/signalr-basics/signalr-postman-pre-call.png)
 - Calling the Web API will create a new Person and then fire the `PersonTableChanged` event:
-![](../static/img/blog-images/signalr-basics/signalr-postman-call-web-api.png)
+![](../../../static/img/blog-images/signalr-basics/signalr-postman-call-web-api.png)
 - The Client will receive an alert of the change:
-![](../static/img/blog-images/signalr-basics/signalr-client-change.png) 
+![](../../../static/img/blog-images/signalr-basics/signalr-client-change.png) 
 
 If you notice you can see my Hub sent the client app the name and parameters of the event. It did this via a WebSocket connection that was enstablished when we connected my client to the Hub. SignalR chooses the most optimal connection to make the client server communicate bi-directionally. [Here is Microsoft's word](https://learn.microsoft.com/en-us/aspnet/core/signalr/introduction?view=aspnetcore-7.0#transports) on this!
 
