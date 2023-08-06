@@ -83,7 +83,7 @@ A Hub is a server concept in SignalR terms. It simply just represents a signalr 
 The Type `T` is an interface that has all the events the Hub can expose.
 
 Hub Example:  
-```csharp
+```js
 using Microsoft.AspNetCore.SignalR;
 
 namespace SignalRExample.Hubs;
@@ -135,7 +135,7 @@ We will see how that is done on the client side later but for now. This will be 
 - Clients.Groups - calls a certain group of clients
 
 This is what we will use to cause events. We can edit the above code to be like this:
-```csharp
+```js
 public class DatabaseHub : Hub<DatabaseHubMethods>
 {
     //Notify every client that subscribed to this event.
@@ -155,7 +155,7 @@ In this blog we are going to Call all clients for more info on how to scope Sign
 ##### Entity Framework Models
 We will have simple EFCore models that represent tables in our database.  
 - ProductModel:
-``` csharp
+```js
 public class Product : Entity
 {
     public string ProductName { get; set; } = string.Empty;
@@ -163,7 +163,7 @@ public class Product : Entity
 }
 ```
 - PersonModel:
-``` csharp
+```js
 public class Person : Entity
 {
     public string Name { get; set; } = string.Empty;
@@ -173,7 +173,7 @@ public class Person : Entity
 ```  
 
 - Entity
-``` csharp
+```js
 public class Entity 
 {
     public int Id {get; set;}
@@ -186,7 +186,7 @@ For Data Models and set up, please see [Repo](https://github.com/Takobz/signalr-
 For us to cause an event to fire we just need to call the `Clients.All.<my-event-function>` So we are going to create a Controller that can be POSTED to and then it will fire an event after a successful insert.  
 
 Here is the Controller:  
-```csharp
+```js
 [ApiController]
     [Route("[controller]")]
     public class SignalRController : ControllerBase
