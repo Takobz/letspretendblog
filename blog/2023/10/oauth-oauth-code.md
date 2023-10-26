@@ -32,7 +32,7 @@ To understand what is OAuth we will need to travel a while back in time and see 
 
 #### Actors In OAuth
 In this small section I will just add terms to some actors that are involved in OAuth:
-![oauth-actors](../static/img/blog-images/oauth-auth-code/oauth-actors.png)
+![oauth-actors](../../../static/img/blog-images/oauth-auth-code/oauth-actors.png)
 
 - `Resource Owner` - This is the person/entity that owns the data we are interested in.
 - `Client` - This is the application that wants to access the resource owner's data. An example would be an application that wants to view your Spotify data to maybe show most played songs in the last week.
