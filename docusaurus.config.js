@@ -67,15 +67,6 @@ const config = {
         style: 'dark',
         links: [
           {
-            title: 'Docs',
-            items: [
-              {
-                label: 'Tutorial',
-                to: '/docs/intro',
-              },
-            ],
-          },
-          {
             title: 'Socials',
             items: [
               {
@@ -87,7 +78,7 @@ const config = {
                 href: 'https://twitter.com/KhutsoKobela',
               },
             ],
-          },
+          }
         ],
         copyright: `Copyright © ${new Date().getFullYear()} Let's Pretend, Inc. Built with Docusaurus.`,
       },
