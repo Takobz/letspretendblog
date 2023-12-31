@@ -9,6 +9,7 @@ authors:
 tags: [React, Javascript]
 ---
 
+<!--truncate-->
 
 # React Bare Bones
 
