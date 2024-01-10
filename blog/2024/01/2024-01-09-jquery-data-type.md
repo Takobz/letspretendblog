@@ -62,10 +62,59 @@ A line later I use the `append()` method to append a child to my div this will a
 You may have noticed the use of `$(document).ready(function(){...})` in the example, this is best practice as it lets JQuery wait for the DOM to be ready before starting to manipulate it, it is best practice to have your JQuery inside of the function if you want your JQuery to execute as soon as the DOM is fully loaded otherwise in the case of creating, say, onclick event functions that will be used when you click a button then it's okay because your function will run when the DOM is loaded i.e. when you are able to click buttons etc.
 :::
 
-
 :::tip
 Make sure you always import your jquery first from you cdn then followed by the script that uses JQuery as seen in my head tag of my html document. This is because the JQuery function `$` wouldn't have been loaded if you start with a script that JQuery dependency.
 :::
 
 #### What is AJAX?
+AJAX stands Asynchronous Javascript And XML. It is used for sending HTTP request to the server from your web app in manner that doesn't load up the whole page, it is useful for sending requests then dynamically changing your page.  
+
+With plain javascript a AJAX object can be initialised using the new keyword as follows: `var xhttp = new XMLHttpRequest();`.
+
+##### JQuery's AJAX
+JQuery has a way to use AJAX functionality without needing to initiliaze the `XLMHttpRequest` which becomes tedious real fast. To do that we have a `$.ajax({...})` where we give our ajax method some values as follows:
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+    $(document).ready(function(){
+        $.ajax({
+            url: "https://jsonplaceholder.typicode.com/posts",
+            method: "GET",
+            beforeSend: function(){
+                console.log("loading")
+            },
+            success: function(result){
+                console.log(result);
+                $("body").append("<p>Data received!</p>");
+            },
+            error: function(error){
+                console.log(error);
+                $("body").append("<p>An error occurred.</p>");
+            }
+        });
+    });
+    </script>
+</head>
+<body>
+</body>
+</html>
+```
+
+I served the above HTML with `npx server` and got the follwing result:
+![jquery-call](../../../static/img/blog-images/jquery-data-type/send-jquery-to-get-json-back.png)
+
+The json we passed in the `$.ajax({...})` method had the following properties and here's what they mean:
+- url:
+- method:
+- dataType:
+- beforeSend:
+- success:
+- error
+
+:::tip
+TODO - Add Tip about content type and headers.
+:::
 
