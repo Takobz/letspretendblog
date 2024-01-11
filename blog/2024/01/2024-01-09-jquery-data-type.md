@@ -10,9 +10,7 @@ tags: [jquery, ajax, dataType, API]
 date: 2024-01-09
 ---
 
-<!--truncate-->
-
-Hello There (General Kenobi) In this blog post we will be looking at how JQuery's AJAX call can think your successful AJAX calls are not successful only because of the dataType you used when calling a remote API.
+Hello There (General Kenobi). In this blog post we will be looking at how JQuery's AJAX call can think your successful AJAX calls are not successful only because of the dataType you used when calling a remote API.
 
 <!--truncate-->
 
@@ -20,6 +18,7 @@ Hello There (General Kenobi) In this blog post we will be looking at how JQuery'
 - What is JQuery and AJAX.
 - Doing an AJAX call with JQuery.
 - JQuery "mistaking" your success as error
+- The "fix"
 - Conclusion
 
 
@@ -83,6 +82,7 @@ JQuery has a way to use AJAX functionality without needing to initiliaze the `XL
         $.ajax({
             url: "https://jsonplaceholder.typicode.com/posts",
             method: "GET",
+            dataType: json
             beforeSend: function(){
                 console.log("loading")
             },
@@ -107,14 +107,77 @@ I served the above HTML with `npx server` and got the follwing result:
 ![jquery-call](../../../static/img/blog-images/jquery-data-type/send-jquery-to-get-json-back.png)
 
 The json we passed in the `$.ajax({...})` method had the following properties and here's what they mean:
-- url:
-- method:
-- dataType:
-- beforeSend:
-- success:
-- error
+- url: this is url where we want to send our call.
+- method: HTTP method like GET, POST, PUT and DELETE
+- dataType: the expected data type from call
+- beforeSend: function that will be executed right before sending the call.
+- success: function to execute on success. This includes call with 2xx, 3xx.
+- error: function to execute non success calls or failures to read/process responses. Example: 4xx, 5xx.
 
 :::tip
-TODO - Add Tip about content type and headers.
+If you need to specify certain headers in your AJAX call you can specify header prop in the obbject passed to the $.ajax method.
 :::
 
+### JQuery "mistaking" your success as error
+If you can notice I pust mistaking in qoutes because it's not really mistaking, either way let's see how that happens.
+
+#### Cause of "mistaking" success with error 
+There is case that is easy to miss that may cause JQuery AJAX call to think a success call is failure. **This happens when we specify the wrong dataType**.  
+
+So if I am expecting a json response and my server sends me a 200 HTTP Status Code with html content this will classified as an error but there won't be any log to let me know. The reason this becomes an error is by telling JQuery you expect json it will try to parse the response for you and if it fails even though the response 200 OK, it will just go to the `error function`. 
+
+To illustrate this, I have create an html page that just has an h1 tag as follow:
+```html
+<!DOCTYPE html>
+<html>
+<body>
+<h1>About Page For Blog</h1>
+</body>
+</html>
+```
+Which simply shows this:
+![about-page](../../../static/img/blog-images/jquery-data-type/about-page.png)
+
+This will be hosted on localhost:3000 same as my html with JQuery. Then I will do a call where I specify `dataType: json` then do a call to get this new page. It's as follows:
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+    $(document).ready(function(){
+        $.ajax({
+            url: "/about",
+            method: "GET",
+            dataType: "json",
+            beforeSend: function(){
+                console.log("loading")
+            },
+            success: function(result){
+                console.log(result);
+                $("body").append("<p>Data received!</p>");
+            },
+            error: function(error){
+                console.log(error);
+                $("body").append("<p>An error occurred.</p>");
+            }
+        });
+    });
+    </script>
+</head>
+<body>
+</body>
+</html>
+```
+The result:
+![send-fail](../../../static/img/blog-images/jquery-data-type/send-jquery-fail.png)
+
+As you can see the `responseText` which serves as the content of the response is an html about page and `status` is OK from the part we logged in the console, yet our function goes to error hence we see our body appended with **An error occurred** message. 
+
+Again this because we told JQuery: "hey, I am sending an HTTP request and the server must give dataType json as a response". Then JQuery tries to be nice and parse your responseText for then fails, hence calling the error function. So how do we fix this?  
+
+:::note
+Before fixing, I'd like to add that, this isn't a bug by JQuery but rather a feature to make sure your data returned is what you expected so you can maybe do some operations on the JSON response and this again highlights something. The error function is not a function only for failed calls i.e. 500, 400 etc. It is also called by JQuery for process/parse failures so it's good to keep that in mind.
+:::
+
+### The "fix"
