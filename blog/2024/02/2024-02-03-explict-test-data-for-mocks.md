@@ -21,7 +21,7 @@ Hello there! On this blog post we are going to talk the dangers of using meaning
 - Conclusion
 
 :::note
-Just a quick a note on terminology used, considering that I have worked most with OPP paradigm, most of the terms I will use will be rooted in that background but hopefully this is useful beyond OOP.
+Just a quick a note on terminology used, considering that I have worked most with the OOP paradigm, most of the terms I will use will be rooted in that background but hopefully this is useful beyond OOP.
 :::
 
 ### What are Mocks.
