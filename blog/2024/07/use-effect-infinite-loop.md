@@ -1,6 +1,6 @@
 ---
-slug: use-effect-infite-loop
-title: UseEffect Infite Loop
+slug: use-effect-infinite-loop
+title: UseEffect Infinite Loop
 authors: 
     - name: Khutso Kobela
       title: Novice Programmer
