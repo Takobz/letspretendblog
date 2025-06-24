@@ -32,10 +32,10 @@ So when I read this kind of explanation of CORs I was confused because I had my 
 
 Well it turns out if we have our React code and .NET API running on the same domain (localhost) but having different port numbers, this is seen as two different origins that, here's a summary of origin equivalence:
 
-- http://domain-a:portNumber1 vs http://domain-a:portNumber2 - different origin (port is not the same number)
-- http://domain-a:portNumber1 vs http://domain-b:portNumber1 - different origin (not the same machine/server)
-- https://domain-a:portNumber1 vs http://domain-b:portNumber1 - different scheme (https and http) thus different origins.
-- http://domain-a:portNumber1/path/one vs http://domain-a:portNumber/path/two - same origin.
+- `http://domain-a:portNumber1` vs `http://domain-a:portNumber2` - different origin (port is not the same number)
+- `http://domain-a:portNumber1` vs `http://domain-b:portNumber1` - different origin (not the same machine/server)
+- `https://domain-a:portNumber1` vs `http://domain-b:portNumber1` - different scheme (https and http) thus different origins.
+- `http://domain-a:portNumber1/path/one` vs `http://domain-a:portNumber/path/two` - same origin.
 
 From above we can see for origins to be the same the port number, scheme and domain has to be the same. So this is the reason the browser thought my React app (running on http://localhost:3000) was doing a Fetch request from a different origin (my API running on http://localhost:5000).
 
