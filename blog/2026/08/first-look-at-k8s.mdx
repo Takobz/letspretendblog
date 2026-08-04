@@ -1,3 +1,50 @@
 ---
-
+slug: first-look-at-k8s
+title: First Look At K8s 
+authors: 
+    - name: Khutso Kobela
+      title: Novice Programmer
+      url: https://github.com/Takobz
+      image_url: https://github.com/Takobz.png
+tags: [ Kubernetes, Containers, Images ]
+date: 2026-08-04
 ---
+
+In this blog post I will be looking at what Kubernetes is.   
+I am planning on using it to deploy an application on my Raspberry Pi.  
+Peeps say it is good for microservice and what I will be deploying IS NOT a microservice just for funnies.  
+
+{/* truncate */}
+
+# Topics
+
+- [What Is Kubernetes](#what-is-kubernetes)
+- [K8s Abstractions]()
+- [Simple Local K8s Cluster]()
+- [Do I Need To Use K8s?]()
+
+## What Is Kubernetes
+
+Kubernetes, sometimes reffered to as K8s, is container orchestration platform, for deploying and managing containerized applications across different machines. 
+Now that sound fancy with words like "conatiner orchestration platform" but what does all of that mean, for us to understand that we need to maybe tell a story...  
+
+### What It Means To Be A K8s Cluster 
+
+Let's say we have an application that shows movie reviews, usually the site is happy with 10 concurrent users at a time.  
+Then a very interesting movie comes out, that a lot of people have been buzzing about then suddendly we see a traffic of 100 users all at once.  
+
+Our server starts acting slow because our application can't serve 100 concurrent users, this problem can be solved in one of two ways; `Vertical or Horizontal Scaling`.
+What does vertical or horizontal scaling even mean?
+
+Before I go into vertical or horizontal scaling, I'd assume we all know what scaling is, lol, if we don't here's a nice definition I took off Google:
+
+```text
+Scaling means to change in size or scope of something
+```
+
+Pretty nice definition there, makes sense, now to the two types of scalings we care about.
+
+### Vertical Scaling
+
+### Horizontal Scaling
+
