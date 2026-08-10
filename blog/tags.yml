@@ -1,0 +1,14 @@
+series:
+  label: Series
+  permalink: /series
+  description: Blog posts that are part of a bigger series.
+
+containers:
+  label: Containers
+  permalink: /containers
+  description: Related to containerization.
+
+kubernetes:
+  label: Kubernetes
+  permalink: /k8s
+  description: Related to Kubernetes
