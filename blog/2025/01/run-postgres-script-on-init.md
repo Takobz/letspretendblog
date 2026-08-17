@@ -80,7 +80,7 @@ The environment variables `POSTGRES_DB` and `POSTGRES_PASSWORD` will be used by 
 - Create a database called initdb (default database is postgres)
 - Create a password for the default user in postgres called `postgres`.  
 
-So we are essentially just overriding default values here. You can read up about the default environment variables and what they imply [here](https://hub.docker.com/_/postgres)
+So we are essentially just overriding default values here. You can read up about the [default environment variables and what they imply](https://hub.docker.com/_/postgres)
 
 ### The SQL script
 
