@@ -3,10 +3,10 @@ slug: creating-k8s-local-cluster
 title: Creating K8s Local Cluster (K8s Deploy Part 2)
 authors: [khutso]
 tags: [ kubernetes, containers, series ]
-date: 2026-08-18
+date: 2026-08-23
 ---
 
-In this post we will be creating and deployig a kubernetes cluster and learn some concepts that help us provision our containerized application in a Node in the cluster. 
+In this post we will be creating and deploying into a kubernetes cluster and learn some concepts that will help us provision our containerized application in a Node of the cluster. 
 This part 2 of the Deploying Kubernetes series, see [part 1](./first-look-at-k8s.mdx).
 
 {/* truncate */}
@@ -17,19 +17,19 @@ This part 2 of the Deploying Kubernetes series, see [part 1](./first-look-at-k8s
 - [Testing MiniKube and KubeCtl](#testing-minikube-and-kubectl)
 - [A Kubernetes Deployment](#a-kubernetes-deployment)
 - [Creating a Deployment](#creating-a-deployment)
-- Conclusion
+- [Conclusion](#conclusion)
 
 ## MiniKube, the local cluster
 
 MiniKube is a local Kubernetes cluster that is ideal for running K8s locally for learning and experimenting. 
-In this post I will be using it to do what we call a Deployment, but first we will need explain how it works. 
+In this post I will be using it to do what we call a Deployment, but first we will need to explain how it works. 
 
 ### MiniKube the Docker Cluster
 
 MiniKube works by creating a Docker container inside your host machine, that docker container will act as your cluster.  
-We won't focus on the details of the internals, the one thing to take away is:  
+We won't focus on the details of the internals of MiniKube, the one thing to take away is:  
 
-- MiniKube creates a container that will act as cluster.
+- MiniKube creates a container that will act as a cluster.
 - The container inside has a Node (with Kubelet), Control Plane, and other K8s component.
 - By default minikube creates a cluster with only one Node.
 
@@ -41,14 +41,14 @@ Before we can start we need both MiniKube and KubeCtl to proceed:
 
 - Install [MiniKube](https://minikube.sigs.k8s.io/docs/start) to have a local cluster.
 - Install [KubeCtl](https://kubernetes.io/docs/tasks/tools/#kubectl) to have means to talk to the cluster via command line.
-- Install [Docker](https://www.docker.com/get-started/) to be able to run MiniKube container.
+- Install [Docker](https://www.docker.com/get-started/) to be able to run the MiniKube container.
 
-With these tools installed we can look at how get started deploying our first application into a Kubernetes cluster.
+With these tools installed we can look at how to get started deploying our first application into a Kubernetes cluster.
 
 
 ## Testing MiniKube and KubeCtl
 
-To start with our cluster we will need to start up minikube first with the command:
+To start we will need to start up minikube first with the command:
 
 ```bash
 # This starts up the minikube cluster on our machine.
@@ -79,11 +79,13 @@ NAME       STATUS   ROLES           AGE   VERSION
 minikube   Ready    control-plane   14d   v1.35.1
 ```
 
-This small exercise just hepled us start up the cluster and also we utilized the KubeCtl to talk to our cluster and get us the avaliable Nodes.  
+This small exercise just hepled us start up the cluster and also we utilized KubeCtl to talk to our cluster and get us the avaliable Nodes.  
 
 :::note
-By default MiniKube creates on Node (VM) that acts as our control plane and will be run our Pod.  
-We can specify to have more than one Node, we will see how that is done in the future.
+
+By default MiniKube creates one Node (VM) that acts as our control plane and will be used to run our Pod. 
+We can have more than one Node using MiniKube, we will see how that is done in the future.
+
 :::
 
 
@@ -92,27 +94,144 @@ We can specify to have more than one Node, we will see how that is done in the f
 A Deployment is an object that describes the desired state of running instances of your containerized application.  
 It is fed to the `Control Plane` and it tells the `Control Plane` how many instances of a said containerized app (Pods) it wants running.  
 
-The Control Plane's job is to schedule these Pods to be deployed / assigned to the available and healthy Nodes within the cluster.  
-It's very important to note that a Deployment doesn't dictate which Node runs the Pods it wants, it just says some many it wants.  
+The Control Plane's job is to schedule these Pods to be deployed / assigned to any available and healthy Nodes within the cluster.  
+It's very important to note that a Deployment doesn't dictate which Node runs the Pods it wants created, it just says many it wants.  
 
-The number of Pods the Deployment specifies is known as `Replicas`. I am using the words instances and replicas interchangebly in this post.
+The number of Pods the Deployment specifies is known as `Replicas`. (**I am using the words instances and replicas interchangebly in this post.**)
 
-A Scheduler within the Control Plane will be responsible for assigning the replicas to different Nodes, it chooses Nodes based on resource availability.  
-Once Scheduled, the Node's Kubelet will pick up the number and image they need to pull and create a containerized app i.e. Pod(s) to run it.  
+A Scheduler within the Control Plane will be responsible for assigning the replicas to different Nodes, it chooses Nodes based on resource availability. Once Scheduled, the Node's Kubelet will pick up the number and image they need to pull and create a containerized app i.e. Pod(s) to run it.  
 
-The Deployment will constantly check with the Control Plane if the desired state is satisfied if it happens it not the Control Plane will need rescheduled Pods.  
-This would happen if a Node or Pod goes down, the Scheduler will either need to create Pods in another Node or recreate the crash Pod(s) in the same Node.  
+The Deployment will constantly check with the Control Plane if the desired state is satisfied if it happens it is not, the Control Plane will need to reschedule. This would happen if a Node or Pod goes down, the Scheduler will either need to create Pods in another Node or recreate the crashed Pod(s) in the same Node.  
 
 :::note
+
 The reason for the Deployment's desired state to not be satisfied might be:
 - A Pod crashes for whatever reason.
 - A Node goes down.
 
-The cluster will try by all means to recreate the Pod, find a healthy Node etc.  
-If it fails we will have our Pods in a `Pending` state forever.
+The cluster will try by all means to recreate the Pod(s) by finding a healthy Node, etc.  
+If it fails we will have our Pod(s) in a `Pending` state forever.
+
 :::
 
-The image below shows how the whole thing kinda works:
+The image below shows how the whole thing works:
 ![how-a-k8s-deployment-looks](../../../static/img/blog-images/creating-k8s-local-cluster/how-a-k8s-deployments-looks.png) 
 
 ## Creating a Deployment
+
+We will be creating a deployment in our local minikube cluster, please see [Testing MiniKube and KubeCtl](#testing-minikube-and-kubectl) section on how one can start up the cluster.
+
+### Using KubeCtl To Create a Deployment
+
+To create a deployment we need to feed our Control Plane some configuration via the KubeCtl CLI to let it know we want to create a deployment. By running the command below:  
+
+```bash
+kubectl create deployment k8s-first-deploy --image=gcr.io/google-samples/kubernetes-bootcamp:v1
+```
+We would create a deployment called `k8-first-deploy`, the deployment's desired state is:
+
+- Have a Pod running a container for the image `kubernetes-bootcamp:v1` (pulled from grc.io registry)
+- Have 1 replica of this image running (by default 1 replica gets created since no replica number was specified)
+
+:::info
+
+The `create deployment` command can also take file config file. We will see how that is done in later posts.  
+
+Just to feed our curiosity, we can use the `--dry-run` flag to see the config that will be created for our deployment here:  
+
+```bash
+kubectl create deployment k8s-first-deploy --image=gcr.io/google-samples/kubernetes-bootcamp:v1 --dry-run=client -o yaml
+
+# Outputs YAML file of deployment on the terminal
+``` 
+:::
+
+### Checking The Created K8s Objects
+
+After the deployment has been created we can check several things like:
+
+#### The deployment
+
+```bash 
+kubectl get deployments
+
+# Expected Output
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+k8s-first-deploy   1/1     1            1           6d11h
+```
+
+#### The Pods
+
+```bash
+kubectl get pods
+
+# Expected Output
+NAME                                READY   STATUS    RESTARTS        AGE
+k8s-first-deploy-678b9ccd54-gj6qm   1/1     Running   1 (6d10h ago)   6d11h
+```
+
+If the Pod STATUS is Running, this means the Pod is running our containerized application fine, now it's time to access it.
+
+## Calling The Deployed Application
+
+By default applications deployed into Kubernetes are only accessible within the Cluster network. The image we used in our deployment to create a Pod runs an app on port 8080.  
+If we try to `curl localhost:8080` we won't get any response back, this is because we haven't told Kubernetes to expose any Pod's port outside of it's network.  
+
+To expose a Pod we would need to create a `Kubernetes Service` object, which is beyond the scope of this blog post (that's for part 3!), for now we can create a cluster wide proxy using kubectl.  
+
+### Cluster Wide Proxy To Call Running Pod
+
+#### Creating Proxy
+
+On a seperate terminal window run the following command:
+
+```bash
+kubectl proxy
+
+# Expected Output
+# Starting to serve on 127.0.0.1:8001
+```
+
+This means we have a proxy into the cluster via `localhost:8001`, now we need to get the Pod name so we can call it.
+
+#### Get Pod name
+
+On another terminal window we can use the command:
+
+```bash
+# Get Pod name and store it in an environment variable called POD_NAME
+export POD_NAME=$(kubectl get pods --no-headers -o custom-columns=":metadata.name")
+
+# (Optional) echo the POD_NAME var to see if the value is there
+echo $POD_NAME
+
+# Expect similar output:
+k8s-first-deploy-678b9ccd54-gj6qm
+```
+
+#### Calling The Pod's Exposed Application
+
+To curl the exposed the Pod we just need to do this command:
+
+```bash
+curl http://127.0.0.1:8001/api/v1/namespaces/default/pods/$POD_NAME:8080/proxy/
+
+# Expected Output
+Hello Kubernetes bootcamp! | Running on: k8s-first-deploy-678b9ccd54-gj6qm | v=1
+```
+
+The deployed application returns a string when calling the base path. This proves we can call the Pod within the cluster network.
+
+## Conclusion
+
+We won't always need to have a proxy to expose the whole cluster just to reach our deployed instance(s), we will use `Kubernetes Services` to expose our applications but that's for next bog post.  
+
+We covered a lot in this blog post but here are the key takeaways:  
+
+- MiniKube is a local cluster that helps us use Kubernetes in our own dev machines.
+- KubeCtl is a CLI that enables us to communicate with the Control Plane.
+- Deployments are means for us to describe a desired state of the apps we want running within our cluster.
+- Kubernetes creates an internal network that is not exposed even to the host (Node) running the Pod/Cluster
+
+That's it for this post, until next time, keep pretending until you are not.
+
