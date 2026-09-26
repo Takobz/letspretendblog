@@ -7,7 +7,7 @@ date: 2026-09-26
 ---
 
 In this blog post we will be looking at how to expose our deployed application via kubernetes' Service object. 
-This is a continuation of the K8s series, please the previous two parts: [1](../08/first-look-at-k8s.mdx) and [2](../08/creating-k8s-local-cluster.mdx) for more.
+This is a continuation of the K8s series, please see the previous two parts: [Part 1](../08/first-look-at-k8s.mdx) and [Part 2](../08/creating-k8s-local-cluster.mdx) for more.
 
 {/* truncate */}
 
@@ -15,56 +15,58 @@ This is a continuation of the K8s series, please the previous two parts: [1](../
 
 - [What Is A Kubernetes Service?](#what-is-a-kubernetes-service)
 - [A Look At The NodePort Service](#a-look-at-the-nodeport-service)
-- Creating a NodePort Service
-- Conclusion
+- [Creating a NodePort Service](#creating-a-nodeport-service)
+- [Conclusion](#conclusion)
 
 ### What Is A Kubernetes Service?
 
-In the previous post we saw that when we deploy our application, Kubernets by default, will create a [private network for the cluster](../08/creating-k8s-local-cluster.mdx#calling-the-deployed-application). What this meant is that we couldn't access our application from outside that network even if we were on the machine that hosted the cluster.  
+In the previous post we saw that when we deploy our application, Kubernets by default, will create a [private network for the cluster](../08/creating-k8s-local-cluster.mdx#calling-the-deployed-application). What this meant is that we couldn't access our application from outside that network even if we were on the machine that ran the cluster.  
 
 As a way to test that our application worked and was responding to HTTP calls we resorted to creating a `cluster proxy`.  
 
-Even though this worked it is not practical in a world were we want to expose our app to the outside world and to also add the proxy created a local URL that looked like this:
+Even though this worked it is not practical in a world where we want to expose our app to the outside world. To add the proxy created a local URL that looked like this:
 
 ```bash
 http://127.0.0.1:8001/api/v1/namespaces/default/pods/$POD_NAME:8080/proxy/
+
 ```
-which just looked ugly. Kubernetes Services helps with exposing our application and can be described as:
+which just looked ugly. Kubernetes Services helps with exposing our application externally and can be described as:
 
 ```text
-A Kubernetes Service is an abstraction for exposing a set of Pods externally, provide load-balancing and service discovery for the said Pods. 
+A Kubernetes Service is an abstraction for exposing a set of Pods externally.
+Provides load-balancing and service discovery for the said Pods. 
 ```
 
 They are different types of Services in Kubernetes and we will be focusing on the one that helps us expose our app externally.
 
 #### Different Types Of Services
 
-- `ClusterIP` - Exposes an IP that can be used by objects (Pods, etc) within the cluster to call Pods of a certain service - service discovery.
+- `ClusterIP` - Exposes an IP that can be used by objects (Pods, etc) within the cluster to call Pods associated with a certain service - service discovery.
 - `NodePort` - Superset of ClusterIP, exposes a port on all Nodes in the cluster that can be used to reach Pods associated with the service.
-- `LoadBalancer` - Superset of NodePort, creates an external IP that will route to NodePort Service so we use different Node IPs for calling the application.
+- `LoadBalancer` - Superset of NodePort, creates an external IP that will route to a NodePort Service so we don't use different Node IPs for calling the application.
 - `ExternalName` - OUT OF SCOPE FOR ME AND I AM HAPPY TO SKIP LOL!!
 
-The service type we will be focusing on is the `NodePort` it will help us expose our Pods fine, we can go a step further and use LoadBalancer but that is more cloud specific than local labbing.  
+The service type we will be focusing on is the `NodePort` it will help us expose our Pods externally, we can go a step further and use LoadBalancer but that is more cloud specific than local labbing.  
 
 Now let's look at how a NodePort service would look like.
 
 ### A Look At The NodePort Service
 
-Below it's a high overview of how I conceptualize the NodePort service setup:  
+Below is a high overview of how I conceptualize the NodePort service setup:  
 ![node-port-service-overview](../../../static/img/blog-images/exposing-app-via-k8s-service/node-port-service-overview.png)  
 
 To fully understand what is going on above we need to explain the role of each component in the picture so it is more digestable.  
 
 #### 1. Pods + Service (Green Arrows)
 
-When we create a Deployment we can create labels for the Pods that will be provisioned because of that Deployment, by default a label of the same name as the deployment gets created and attached to Pods of the Deployment.  
+When we create a Deployment ([see Part 1](../08/creating-k8s-local-cluster.mdx)) we can create labels for the Pods that will be provisioned, by default a label of the same name as the deployment gets created and attached to Pods of the Deployment.  
 
 A service uses these labels to identify the Pods that we want to expose via our NodePort Service. In the image above we have Pods with label `label=App` and we see our service has a selector with `selector=App`.
-This is what the green arrows represent, the linkage of the Pods and the service.
+This is what the green arrows represent, the association of the Pods and the service.
 
 When a NodePort is created it will do the following:
 
-- Create a static port within range `30000 - 32767` and assign it as a port Nodes need to open to access Pods with the label matching the selector.
+- Create a static port within the range `30000 - 32767` and assign it as a port Nodes need to open externally for traffic to access Pods with the label matching the selector.
 - An `Endpoints` object will be created, which will have the list of all Pod IPs and Port (TargetPort) that have a matching label with the selector.
 
 The Pod IPs are useful for the next step.
@@ -109,5 +111,77 @@ So even if the caller calls the NodePort by using Node IP of a Node that doesn't
 This is because the NodePort applies to **ALL THE NODES IN THE CLUSTER**, if node doesn't have the Pod it will just send to the Pod IP in another Node.
 :::
 
+Now let's look at how to creat a NodePort service.
 
+### Creating a NodePort Service
 
+Provided that we have a deployment `deployment/k8s-first-deploy` to create a service that will associate with it's Pods we go:
+
+```bash
+
+kubectl expose deployment/k8s-first-deploy \  
+--type=NodePort \
+--port 8080 
+
+# Expected Output
+service/k8s-first-deploy exposed
+
+```
+
+Then you use the describe function to get the service and see how it is configured:
+
+```bash
+
+kubectl describe services/k8s-first-deploy
+
+# Expected Output
+Name:                     k8s-first-deploy
+Namespace:                default
+Labels:                   app=k8s-first-deploy
+Annotations:              <none>
+Selector:                 app=k8s-first-deploy
+Type:                     NodePort
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.110.44.159
+IPs:                      10.110.44.159
+Port:                     <unset>  8080/TCP
+TargetPort:               8080/TCP
+NodePort:                 <unset>  31350/TCP
+Endpoints:                10.244.0.44:8080,10.244.0.45:8080
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Internal Traffic Policy:  Cluster
+Events:                   <none>
+
+```
+
+Take note that there's and `Endpoints` comman seperated strings that shows the Pod IPs associated with this service.  
+The selector used, this is the default one that is just the name of the deployment I created.  
+
+The NodePort assigned would be `31350` as seen above.  
+
+For my Minikube cluster for me to be able to call our app via the NodePort service I will do so:
+
+```bash
+
+# using minikube ip command to get the "node's" ip
+# curl is just a way to call a server on the terminal
+curl http://$(minikube ip):31350
+
+```
+
+This will call the app fine and in the background all that magic to proxying will happen and one of the healthy Pods will respond.
+
+### Conclusion
+
+In this post we delved into how we can expose our application outside the Cluster's Private Network.  
+
+I've learnt quite a lot with this exercise and here are a few takeaways:
+
+- K8s NodePort service uses selector and label to associate Pods with the service.
+- Endpoints object holds a list of Pod IPs associated with the service.
+- Kube-Proxy does the network rules to allow proxying from Node into Pods.
+- Callers use any of the Node IPs to call the application.
+
+Obviously we wouldn't want consumers of our app to use the Node's actaul IPs to call us and that's where the concept of Ingress comes in! We shall see it in the next installment.  
